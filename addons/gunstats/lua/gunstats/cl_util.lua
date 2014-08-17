@@ -31,28 +31,18 @@ function GS.SetColorAlpha( color, alpha )
 	return Color( color.r, color.g, color.b, alpha )
 end
 
-local meta = FindMetaTable( "Weapon" )
-
-function meta:GetGunName()
-
-	local name = self:GetPrintName()
-	if GAMEMODE.FolderName == "terrortown" then return LANG.TryTranslation( name ) end
-
-	return name or "???"
-end
-
-function meta:FormStats()
+function GS.FormStats( wep )
 
 	local lines = {}
 	local stats =  GS.Stats.Default
 	for _, tab in pairs( stats ) do
 
-		local var = GS.TableIter( self, tab.var )
+		local var = GS.TableIter( wep, tab.var )
 
 		if type( var ) == "number" and var < 0 then return {} end
 
 		if type( tab.format ) == "function" then
-			var, col = tab.format( var, self )
+			var, col = tab.format( var, wep )
 		elseif type( tab.format ) == "string" then
 			var = string.format( tab.format, type( var ) == "table" and unpack( var ) or var )
 		end
@@ -69,19 +59,20 @@ function meta:FormStats()
 	return lines
 end
 
-function meta:FormPanel()
+function GS.FormPanel( wep )
 
-	local w, h = GS.GetTextSize( "GI_Large", self:GetGunName() )
+	local name = GS.GetGunName( wep )
+	local w, h = GS.GetTextSize( "GS_Large", name )
 	w = w +GS.Padding *2
 	w = w < GS.Width and GS.Width or w
 
-	local _, h2 = GS.GetTextSize( "GI_Medium", "|" )
+	local _, h2 = GS.GetTextSize( "GS_Medium", "|" )
 
 	local tab = {}
 	tab.created = CurTime()
-	tab.name = self:GetGunName()
-	tab.color = GS.TableIter( self, GS.ColorVar ) or GS.GetNameColor( self )
-	tab.stats = self:FormStats()
+	tab.name = name
+	tab.color = GS.TableIter( wep, GS.ColorVar ) or GS.GetNameColor( wep )
+	tab.stats = GS.FormStats( wep )
 
 	tab.width = w
 	tab.height = GS.Padding +h +( h2/1.2 ) *( tab.stats and #tab.stats or 1 )
@@ -89,12 +80,11 @@ function meta:FormPanel()
 	tab.textalpha = 0
 	tab.offset = tab.height *GS.Scale +GS.Float
 
-	GS.Panels[self] = tab
-
+	return tab
 end
 
-function meta:RemovePanel()
+function GS.RemovePanel( wep )
 
-	GS.Panels[self] = nil
+	GS.Panels[wep] = nil
 
 end

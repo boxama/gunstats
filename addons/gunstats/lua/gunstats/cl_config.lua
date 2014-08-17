@@ -34,29 +34,103 @@ GS.TextColor = Color( 236, 240, 241 )
 GS.BGColor = Color( 34, 49, 63, 180 )
 -- Background color (last number is opacity, max-min = 255-0)
 
-GS.ColorVar = "GI_Color"
+GS.ColorVar = "GS_Color"
 -- You can set the unique color for each weapon if you want, go into the weapon file and set a variable with the name above
 -- EG: SWEP.GI_Color = Color( 255, 0, 0 )
 -- If you want that particular weapon to have a red name
 
---=======================================--
--- Stat Colors
+GS.StatColors = {
+	["VERY LOW"] 	= Color( 5, 178, 51 ),
+	["LOW"] 		= Color( 151, 255, 179 ),
+	["HIGH"]		= Color( 255, 101, 7 ),
+	["VERY HIGH"]	= Color( 178, 3, 9 ),
+
+	["AVERAGE"]		= Color( 237, 174, 16 ),
+
+	["VERY GOOD"] 	= Color( 5, 178, 51 ),
+	["GOOD"] 		= Color( 151, 255, 179 ),
+	["BAD"] 		= Color( 255, 101, 7 ),
+	["VERY BAD"]	= Color( 178, 3, 9 ),
+}
+-- Accuracy/recoil rating color translations
+
+
 -- If you want a specific stat to have a particular color, follow the example below, put the name of the color
 -- in square brackets (including spaces etc.) EG: If I wanted the recoil text to be red
 
 -- GS.Colors[ "Recoil" ] = Color( 255, 0, 0 )
 
---=======================================--
+
+--== I suggest you only mess with these if you know Lua proficiently ==--
+
+GS.GetGunName = function( wep )
+
+	local name = wep.PrintName
+	if GS.Gamemode == "terrortown" then return LANG.TryTranslation( name ) end
+
+	return name or "???"
+end
+-- Function to return the name of the weapon, in case you have any special formatting
+
+GS.GetGunTable = function( ent )
+
+	if ent:IsWeapon() then return ent end
+
+	if GS.Gamemode == "darkrp" and ent:GetClass() == "spawned_weapon" then
+
+		return weapons.Get( ent:GetWeaponClass() )
+	end
+
+end
+-- This function retuns the weapon table. Because DarkRP is special.
+
+GS.ShouldShowStats = function( ent )
+	if not IsValid( ent ) then return false end
+	print( ent )
+	if ( not GS.Panels[ent] or type( GS.Panels[ent].textalpha ) == "table" )
+		and GS.Gamemode == "darkrp"
+		and ent:GetClass() == "spawned_weapon" then
+		return true
+	end
+
+	if not ent:IsWeapon() or not ent:IsScripted() then return false end
+
+	if not GS.Panels[ent] or type( GS.Panels[ent].textalpha ) == "table"
+		and LocalPlayer():GetPos():Distance( ent:GetPos() ) < GS.Distance
+		then
+		return true
+	end
+
+	return false
+end
+
+GS.WEAPON_PRIMARY 	= 0 -- Don't change these
+GS.WEAPON_SECONDARY = 1 -- They're just enumerations
+GS.WEAPON_OTHER 	= 2
+GS.GetGunType = function( wep )
+
+
+	if GS.Gamemode == "terrortown" then
+
+		return ( wep.Slot == 1 and GS.WEAPON_SECONDARY ) or ( wep.Slot == 2 and GS.WEAPON_PRIMARY ) or GS.WEAPON_OTHER
+	elseif GS.Gamemode == "darkrp" then
+
+		return ( wep.Primary.Ammo == "pistol" and GS.WEAPON_SECONDARY ) or ( wep.Primary.ClipSize > -1 and GS.WEAPON_PRIMARY ) or GS.WEAPON_OTHER
+	end
+
+	return GS.WEAPON_OTHER
+end
+-- Function to return the type of weapon. Some pretty hacky methods are required, but you should be able to understand how it works (if you heeded the warning above)
 
 GS.GetNameColor = function( wep )
 
 	local tab = {
-		[1] = Color( 241, 196, 15 ), 	-- Secondary
-		[2] = Color( 52, 152, 219 ), 	-- Primary
-		[3] = Color( 211, 84, 0 ),		-- Grenade
+		[GS.WEAPON_PRIMARY] 	= Color( 52, 152, 219 ), 	-- Primary
+		[GS.WEAPON_SECONDARY] 	= Color( 241, 196, 15 ), 	-- Secondary
+		[GS.WEAPON_OTHER] 		= Color( 211, 84, 0 ),		-- Grenade
 	}
 
-	return tab[wep.Slot] or GS.NameColor
+	return tab[ GS.GetGunType( wep ) ] or GS.NameColor
 end
 -- Edit the default colors of specific classes of weapons, decided by their slot, remember your commas!
 
@@ -68,18 +142,22 @@ GS.Stats.Default = {
 	{ name = "Clip", var = "Primary.ClipSize",
 		format = function( var, wep )
 
-		local per, color = wep:Clip1() /var
-		if per <= .25 then
+		if wep.Clip1 then
 
-			color = Color( 178, 3, 9 )
+			local per, color = wep:Clip1() /var
+			if per <= .25 then
 
-		elseif per <= .5 then
+				color = Color( 178, 3, 9 )
 
-			color = Color( 237, 174, 16 )
+			elseif per <= .5 then
+
+				color = Color( 237, 174, 16 )
+
+			end
 
 		end
 
-		return wep:Clip1() .. "/" .. var, color or GS.TextColor
+		return ( wep.Clip1 and wep:Clip1() .. "/" or "" ) .. var, color or GS.TextColor
 	end },
 	{ name = "Accuracy", var = "Primary.Cone",
 		format = function( var )
@@ -123,19 +201,4 @@ GS.Stats.Default = {
 
 			return math.Round( 60/var ) .. " RPM"
 	end }
-}
-
--- Accuracy/recoil rating color translations
-GS.StatColors = {
-	["VERY LOW"] 	= Color( 5, 178, 51 ),
-	["LOW"] 		= Color( 151, 255, 179 ),
-	["HIGH"]		= Color( 255, 101, 7 ),
-	["VERY HIGH"]	= Color( 178, 3, 9 ),
-
-	["AVERAGE"]		= Color( 237, 174, 16 ),
-
-	["VERY GOOD"] 	= Color( 5, 178, 51 ),
-	["GOOD"] 		= Color( 151, 255, 179 ),
-	["BAD"] 		= Color( 255, 101, 7 ),
-	["VERY BAD"]	= Color( 178, 3, 9 ),
 }

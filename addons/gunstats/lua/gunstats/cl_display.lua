@@ -1,15 +1,8 @@
-hook.Add( "PostDrawTranslucentRenderables", "GunInfo", function()
-	if not IsValid( LocalPlayer() ) then return end
+hook.Add( "PostDrawTranslucentRenderables", "GS_Panels", function()
+	if not ( IsValid( LocalPlayer() ) and GS.Gamemode ) then return end
 
 	local gun = LocalPlayer():GetEyeTrace().Entity
-	if IsValid( gun ) and gun:IsWeapon()
-		and gun:IsScripted()
-		and LocalPlayer():GetPos():Distance( gun:GetPos() ) < GS.Distance
-		then
-
-		if not GS.Panels[gun] or type( GS.Panels[gun].textalpha ) == "table" then gun:FormPanel() end
-
-	end
+	if GS.ShouldShowStats( gun ) then GS.Panels[gun] = GS.FormPanel( GS.GetGunTable( gun ) ) end
 
 	local ang = LocalPlayer():EyeAngles()
 	ang:RotateAroundAxis( ang:Forward(), 90 )
@@ -37,17 +30,17 @@ hook.Add( "PostDrawTranslucentRenderables", "GunInfo", function()
 
 				draw.RoundedBox( 2, x, y, panel.width, panel.height, GS.SetColorAlpha( GS.BGColor, panel.alpha ) )
 
-				local _, h = GS.GetTextSize( "GI_Large", panel.name )
-				GS.DrawText( panel.name, "GI_Large", 0, y, GS.SetColorAlpha( panel.color, panel.textalpha ), TEXT_ALIGN_CENTER )
+				local _, h = GS.GetTextSize( "GS_Large", panel.name )
+				GS.DrawText( panel.name, "GS_Large", 0, y, GS.SetColorAlpha( panel.color, panel.textalpha ), TEXT_ALIGN_CENTER )
 				draw.RoundedBox( 8, -panel.width *0.25, y +h, panel.width *0.5, 5, GS.SetColorAlpha( panel.color, panel.textalpha ) )
 
 				if panel.stats then
 
 					for k, stat in SortedPairs( panel.stats ) do
 
-						local _, h2 = GS.GetTextSize( "GI_Medium", stat.left )
-						GS.DrawText( stat.left, "GI_Medium", x +GS.Padding, y +h/2 +( h2/1.2 )*k, GS.SetColorAlpha( stat.lcolor, panel.textalpha ) )
-						GS.DrawText( stat.right, "GI_Medium", panel.width/2 -GS.Padding, y +h/2 +( h2/1.2 )*k, GS.SetColorAlpha( stat.rcolor, panel.textalpha ), TEXT_ALIGN_RIGHT )
+						local _, h2 = GS.GetTextSize( "GS_Medium", stat.left )
+						GS.DrawText( stat.left, "GS_Medium", x +GS.Padding, y +h/2 +( h2/1.2 )*k, GS.SetColorAlpha( stat.lcolor, panel.textalpha ) )
+						GS.DrawText( stat.right, "GS_Medium", panel.width/2 -GS.Padding, y +h/2 +( h2/1.2 )*k, GS.SetColorAlpha( stat.rcolor, panel.textalpha ), TEXT_ALIGN_RIGHT )
 
 					end
 
@@ -61,15 +54,15 @@ hook.Add( "PostDrawTranslucentRenderables", "GunInfo", function()
 				panel.alpha = math.Approach( panel.alpha, 0, FrameTime() *GS.BGFadeOut )
 				panel.textalpha = math.Approach( panel.textalpha, 0, FrameTime() *GS.TextFadeOut )
 			end
-			if panel.textalpha == 0 and panel.alpha == 0 and panel.removing then GS.Panels[ent] = nil end
+			if panel.textalpha == 0 and panel.alpha == 0 and panel.removing then GS.RemovePanel( ent ) end
 
-		else ent:RemovePanel() end
+		else GS.RemovePanel( ent ) end
 
 	end
 
 end )
 
-surface.CreateFont( "GI_Large", {
+surface.CreateFont( "GS_Large", {
 	font 		= GS.Font,
 	size 		= 75,
 	weight 		= 700,
@@ -77,7 +70,7 @@ surface.CreateFont( "GI_Large", {
 	bold 		= true,
 } )
 
-surface.CreateFont( "GI_Medium", {
+surface.CreateFont( "GS_Medium", {
 	font 		= GS.Font,
 	size 		= 50,
 	weight 		= 700,

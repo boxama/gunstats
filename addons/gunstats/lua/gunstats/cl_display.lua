@@ -1,5 +1,8 @@
 hook.Add( "PostDrawTranslucentRenderables", "GS_Panels", function()
-	if not ( IsValid( LocalPlayer() ) and GS.Gamemode ) then return end
+	if not ( IsValid( LocalPlayer() ) and GS.Gamemode )
+		or not GetConVar( "gs_show" ):GetBool() then
+		return
+	end
 
 	local gun = LocalPlayer():GetEyeTrace().Entity
 	if GS.ShouldShowStats( gun ) then GS.Panels[gun] = GS.FormPanel( GS.GetGunTable( gun ) ) end
@@ -10,7 +13,7 @@ hook.Add( "PostDrawTranslucentRenderables", "GS_Panels", function()
 
 	for ent, panel in pairs( GS.Panels ) do
 
-		if IsValid( ent ) and ent.Owner == NULL then
+		if IsValid( ent ) and ent.Owner == NULL and isnumber( panel.textalpha ) then
 
 			if gun ~= ent then panel.removing = true
 			else panel.removing = false end

@@ -86,7 +86,7 @@ end
 
 GS.ShouldShowStats = function( ent )
 	if not IsValid( ent ) then return false end
-	print( ent )
+
 	if ( not GS.Panels[ent] or type( GS.Panels[ent].textalpha ) == "table" )
 		and GS.Gamemode == "darkrp"
 		and ent:GetClass() == "spawned_weapon" then
@@ -106,16 +106,20 @@ end
 
 GS.WEAPON_PRIMARY 	= 0 -- Don't change these
 GS.WEAPON_SECONDARY = 1 -- They're just enumerations
-GS.WEAPON_OTHER 	= 2
+GS.WEAPON_GRENADE 	= 2
+GS.WEAPON_OTHER 	= 3
 GS.GetGunType = function( wep )
 
 
 	if GS.Gamemode == "terrortown" then
 
-		return ( wep.Slot == 1 and GS.WEAPON_SECONDARY ) or ( wep.Slot == 2 and GS.WEAPON_PRIMARY ) or GS.WEAPON_OTHER
+		return ( wep.Slot == 1 and GS.WEAPON_SECONDARY )
+			or ( wep.Slot == 2 and GS.WEAPON_PRIMARY )
+			or ( wep.Slot == 3 and GS.WEAPON_GRENADE )
 	elseif GS.Gamemode == "darkrp" then
 
-		return ( wep.Primary.Ammo == "pistol" and GS.WEAPON_SECONDARY ) or ( wep.Primary.ClipSize > -1 and GS.WEAPON_PRIMARY ) or GS.WEAPON_OTHER
+		return ( wep.Primary.Ammo == "pistol" and GS.WEAPON_SECONDARY )
+			or ( wep.Primary.ClipSize > -1 and GS.WEAPON_PRIMARY )
 	end
 
 	return GS.WEAPON_OTHER
@@ -127,7 +131,7 @@ GS.GetNameColor = function( wep )
 	local tab = {
 		[GS.WEAPON_PRIMARY] 	= Color( 52, 152, 219 ), 	-- Primary
 		[GS.WEAPON_SECONDARY] 	= Color( 241, 196, 15 ), 	-- Secondary
-		[GS.WEAPON_OTHER] 		= Color( 211, 84, 0 ),		-- Grenade
+		[GS.WEAPON_GRENADE] 	= Color( 211, 84, 0 ),		-- Grenade
 	}
 
 	return tab[ GS.GetGunType( wep ) ] or GS.NameColor

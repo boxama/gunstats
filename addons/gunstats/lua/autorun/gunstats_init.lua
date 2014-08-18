@@ -12,8 +12,10 @@ if CLIENT then
 			return tab
 		end
 	}
-	GS = {}
+	GS = GS or {}
 	setmetatable( GS, tab )
+
+	GS.ShouldDraw = CreateClientConVar( "gs_show", 1, true )
 
 	hook.Add( "InitPostEntity", "GS_Startup", function()
 

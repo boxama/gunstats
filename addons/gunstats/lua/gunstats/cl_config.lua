@@ -138,6 +138,13 @@ GS.GetNameColor = function( wep )
 end
 -- Edit the default colors of specific classes of weapons, decided by their slot, remember your commas!
 
+GS.GetGunClass = function( wep )
+
+	if wep.Author == "Spy" then return "FAS" end -- Example
+
+end
+-- This function decides the table of values that should be shown, it indexes the table GS.Stats with the value you return to allow you to show different stats for different types of weapons
+
 -- I suggest you only mess with these if you know what you're doing
 -- the "var" is the variable of the weapon, if your weapon file says SWEP.Primary.Damage = 12 for damage, the var should be:
 -- "Primary.Damage" - remove the "SWEP."

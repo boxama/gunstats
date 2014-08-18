@@ -34,17 +34,22 @@ end
 function GS.FormStats( wep )
 
 	local lines = {}
-	local stats =  GS.Stats.Default
+	local stats = GS.Stats[ GS.GetGunClass( wep ) ] or GS.Stats.Default
+
 	for _, tab in pairs( stats ) do
 
 		local var = GS.TableIter( wep, tab.var )
 
-		if type( var ) == "number" and var < 0 then return {} end
+		if ( type( var ) == "number" and var < 0 ) or var == nil then return {} end
 
 		if type( tab.format ) == "function" then
+
 			var, col = tab.format( var, wep )
+
 		elseif type( tab.format ) == "string" then
+
 			var = string.format( tab.format, type( var ) == "table" and unpack( var ) or var )
+
 		end
 
 		table.insert( lines, {

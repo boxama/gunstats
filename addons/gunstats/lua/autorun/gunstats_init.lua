@@ -5,14 +5,37 @@ AddCSLuaFile( "gunstats/cl_display.lua" )
 if CLIENT then
 
 	local tab = {
-		__index = function( self, k )
+		__newindex = function( self, key, var )
+
+			if istable( var ) and table.Count( var ) == 0 then
+
+				setmetatable( var, getmetatable( self ) )
+				rawset( self, key, var )
+
+			else
+
+				rawset( self, key, var )
+
+			end
+
+			return var
+		end,
+		__index = function( self, key )
+
+			if not key then return end
+
 			local tab = {}
-			setmetatable( tab, getmetatable( self ) )
-			rawset( self, k, tab )
+			if not rawget( self, key ) then
+
+				setmetatable( tab, getmetatable( self ) )
+				rawset( self, key, tab )
+
+			end
+
 			return tab
 		end
 	}
-	GS = GS or {}
+	GS = {}
 	setmetatable( GS, tab )
 
 	GS.ShouldDraw = CreateClientConVar( "gs_show", 1, true )

@@ -146,9 +146,10 @@ GS.Stats.Default = {
 	{ name = "Clip", var = "Primary.ClipSize",
 		format = function( var, wep )
 
-		if wep.Clip1 then
+		local per, color
+		if wep.Clip1 and wep:Clip1() >= 0 then
 
-			local per, color = wep:Clip1() /var
+			per = wep:Clip1() /var
 			if per <= .25 then
 
 				color = Color( 178, 3, 9 )
@@ -161,7 +162,7 @@ GS.Stats.Default = {
 
 		end
 
-		return ( wep.Clip1 and wep:Clip1() .. "/" or "" ) .. var, color or GS.TextColor
+		return ( ( wep.Clip1 and wep:Clip1() >= 0 ) and wep:Clip1() .. "/" or "" ) .. var, color or GS.TextColor
 	end },
 	{ name = "Accuracy", var = "Primary.Cone",
 		format = function( var )
